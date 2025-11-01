@@ -1,0 +1,427 @@
+# Hypernode Node Client
+
+**GPU/CPU Worker for Hypernode Distributed Compute Network**
+
+Docker-based worker software that runs on GPU providers' machines to execute AI/compute jobs and earn HYPER tokens.
+
+![Docker](https://img.shields.io/badge/Docker-Ready-blue)
+![CUDA](https://img.shields.io/badge/CUDA-Supported-green)
+![Python](https://img.shields.io/badge/Python-3.10+-yellow)
+
+---
+
+## 🎯 Overview
+
+The Hypernode Node Client is a lightweight worker that:
+- Detects your GPU specifications automatically
+- Registers your hardware with the Hypernode network
+- Sends periodic heartbeats to stay online
+- Receives and executes AI/compute jobs
+- Reports results back to the network
+- Earns you HYPER tokens for completed work
+
+---
+
+## ✨ Features
+
+- ✅ **Auto GPU Detection**: NVIDIA, AMD, Apple Silicon support
+- ✅ **Docker Isolated**: Jobs run in secure containers
+- ✅ **Zero Configuration**: Just provide wallet address
+- ✅ **Real-time Monitoring**: View logs and metrics
+- ✅ **Auto Updates**: Self-updating mechanism
+- ✅ **Multi-GPU Support**: Run on machines with multiple GPUs
+- ✅ **Telemetry**: Report GPU usage, temp, VRAM
+
+---
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- Docker 20.10+ (with NVIDIA Container Toolkit for GPU)
+- NVIDIA GPU with CUDA support (or AMD/CPU)
+- Ubuntu 20.04+ / Debian 11+ / macOS / Windows with WSL2
+- Internet connection
+
+### 1. Install Docker + NVIDIA Toolkit
+
+**Ubuntu/Debian:**
+```bash
+# Install Docker
+curl -fsSL https://get.docker.com | sh
+sudo usermod -aG docker $USER
+
+# Install NVIDIA Container Toolkit
+distribution=$(. /etc/os-release;echo $ID$VERSION_ID)
+curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | sudo apt-key add -
+curl -s -L https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.list | \
+  sudo tee /etc/apt/sources.list.d/nvidia-docker.list
+
+sudo apt-get update
+sudo apt-get install -y nvidia-container-toolkit
+sudo systemctl restart docker
+```
+
+**Verify GPU access:**
+```bash
+docker run --rm --gpus all nvidia/cuda:12.0-base nvidia-smi
+```
+
+---
+
+### 2. Run the Node Client
+
+Get your command from https://hypernodesolana.org/app after connecting your wallet.
+
+**Example:**
+```bash
+docker run -d \
+  --name hypernode-worker \
+  --gpus all \
+  --restart unless-stopped \
+  -e HN_NODE_TOKEN=hn_abc123... \
+  -e WALLET_PUBKEY=YourSolanaWalletAddress \
+  -e BACKEND_URL=https://api.hypernode.sol \
+  hypernode/node-client:latest
+```
+
+---
+
+### 3. Check Status
+
+```bash
+# View logs
+docker logs -f hypernode-worker
+
+# Check GPU usage
+docker exec hypernode-worker nvidia-smi
+
+# View node status
+docker exec hypernode-worker python check_status.py
+```
+
+---
+
+## 🛠️ Configuration
+
+### Environment Variables
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `HN_NODE_TOKEN` | ✅ Yes | - | Node authentication token from /app |
+| `WALLET_PUBKEY` | ✅ Yes | - | Your Solana wallet address |
+| `BACKEND_URL` | No | `https://api.hypernode.sol` | Backend API endpoint |
+| `HEARTBEAT_INTERVAL` | No | `60` | Heartbeat interval (seconds) |
+| `MAX_JOBS_CONCURRENT` | No | `1` | Max jobs to run simultaneously |
+| `GPU_INDEX` | No | `0` | GPU index to use (for multi-GPU) |
+| `LOG_LEVEL` | No | `INFO` | Logging level |
+
+---
+
+## 📁 Project Structure
+
+```
+hypernode-node-client/
+├── src/
+│   ├── main.py                 # Main worker loop
+│   ├── gpu_detector.py         # Detect GPU specs
+│   ├── heartbeat.py            # Send periodic heartbeats
+│   ├── job_executor.py         # Execute received jobs
+│   ├── telemetry.py            # Report metrics
+│   └── config.py               # Configuration loader
+│
+├── jobs/                        # Job execution modules
+│   ├── llm_inference.py        # LLM inference jobs
+│   ├── llm_finetuning.py       # Fine-tuning jobs
+│   ├── rag_indexing.py         # RAG indexing jobs
+│   └── render.py               # Render jobs
+│
+├── Dockerfile                   # Multi-stage Docker build
+├── docker-compose.yml           # Compose file for easy setup
+├── requirements.txt             # Python dependencies
+├── .dockerignore
+├── .gitignore
+└── README.md                    # This file
+```
+
+---
+
+## 🐳 Docker Build
+
+### Build locally
+```bash
+docker build -t hypernode/node-client:latest .
+```
+
+### Run locally built image
+```bash
+docker run -d \
+  --name hypernode-worker \
+  --gpus all \
+  -e HN_NODE_TOKEN=your_token \
+  -e WALLET_PUBKEY=your_wallet \
+  hypernode/node-client:latest
+```
+
+---
+
+## 🔧 Development
+
+### Run without Docker (for development)
+
+```bash
+# Create virtual environment
+python3 -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Set environment variables
+export HN_NODE_TOKEN=your_token
+export WALLET_PUBKEY=your_wallet
+export BACKEND_URL=http://localhost:3001
+
+# Run worker
+python src/main.py
+```
+
+---
+
+## 📊 Supported Job Types
+
+### 1. LLM Inference
+Run inference on language models (Qwen, DeepSeek, Llama, Mistral)
+- Models loaded via Ollama or HuggingFace
+- Streaming support
+- Batch processing
+
+### 2. LLM Fine-tuning
+Fine-tune models with LoRA/QLoRA
+- Parameter-efficient fine-tuning
+- Custom datasets
+- Checkpoint management
+
+### 3. RAG Indexing
+Build vector indexes for RAG systems
+- Embedding generation
+- Vector storage (FAISS, Chroma)
+- Document chunking
+
+### 4. Vision Pipeline
+Computer vision tasks
+- Object detection
+- Image classification
+- OCR
+
+### 5. Rendering
+3D rendering and video processing
+- Blender renders
+- Video transcoding
+- Image processing
+
+### 6. Generic Compute
+Custom Python/Bash scripts
+- Data processing
+- Scientific computing
+- Batch jobs
+
+---
+
+## 🔐 Security
+
+### Isolation
+- All jobs run in isolated Docker containers
+- No access to host filesystem (except job data)
+- Network sandboxing
+- Resource limits (CPU, RAM, GPU)
+
+### Data Privacy
+- No job data stored locally after completion
+- Results encrypted in transit
+- Optional local logging (disabled by default)
+
+### Updates
+- Auto-update mechanism for client software
+- Signature verification on updates
+- Rollback capability
+
+---
+
+## 📈 Monitoring & Telemetry
+
+### Metrics Reported
+- GPU utilization %
+- VRAM usage
+- GPU temperature
+- Power consumption
+- Job execution time
+- Network bandwidth
+- CPU usage
+- RAM usage
+
+### Logs
+```bash
+# View real-time logs
+docker logs -f hypernode-worker
+
+# Export logs
+docker logs hypernode-worker > node-logs.txt
+```
+
+---
+
+## 🎮 GPU Support
+
+### NVIDIA (Recommended)
+- CUDA 11.0+
+- Driver 450.80.02+
+- Compute Capability 3.5+
+
+**Supported Models:**
+- RTX 4090, 4080, 4070
+- RTX 3090, 3080, 3070
+- A100, A6000, A4000
+- Tesla V100, T4
+
+### AMD
+- ROCm 5.0+
+- Radeon RX 7900 XTX, 7800 XT
+- Radeon RX 6900 XT, 6800 XT
+
+### Apple Silicon
+- M1/M2/M3 (Metal acceleration)
+- 8GB+ unified memory recommended
+
+### CPU-only
+- Can participate in CPU-only jobs
+- Lower earnings but still supported
+
+---
+
+## 💰 Earnings
+
+### How Earnings Work
+1. You register your node via /app
+2. Node client runs on your machine
+3. Jobs are assigned based on your GPU specs
+4. You execute jobs and submit results
+5. Upon verification, HYPER is sent to your wallet
+
+### Payment Distribution
+- **80%** of job price → You (node operator)
+- **10%** → Protocol treasury
+- **5%** → Incentive pool
+- **5%** → Orchestrator/Agent
+
+### Reputation System
+- Higher reputation = more jobs
+- Reputation increases with:
+  - Completed jobs
+  - Staked HYPER
+  - Uptime
+  - Fast execution
+- Reputation decreases with:
+  - Failed jobs
+  - Offline time
+  - Slow execution
+
+---
+
+## 🆘 Troubleshooting
+
+### GPU not detected
+```bash
+# Check NVIDIA driver
+nvidia-smi
+
+# Check Docker GPU access
+docker run --rm --gpus all nvidia/cuda:12.0-base nvidia-smi
+
+# Reinstall NVIDIA Container Toolkit
+sudo apt-get install --reinstall nvidia-container-toolkit
+sudo systemctl restart docker
+```
+
+### Node offline
+```bash
+# Check if container is running
+docker ps | grep hypernode-worker
+
+# Check logs for errors
+docker logs hypernode-worker | tail -50
+
+# Restart container
+docker restart hypernode-worker
+```
+
+### No jobs received
+- Check your reputation score on /app
+- Ensure your node is "Online" status
+- Verify GPU specs meet job requirements
+- Check network connectivity
+- Ensure HYPER stake is sufficient (if required)
+
+---
+
+## 🔄 Updates
+
+The client auto-updates to the latest version. To manually update:
+
+```bash
+# Pull latest image
+docker pull hypernode/node-client:latest
+
+# Stop and remove old container
+docker stop hypernode-worker
+docker rm hypernode-worker
+
+# Start with latest image
+docker run -d \
+  --name hypernode-worker \
+  --gpus all \
+  --restart unless-stopped \
+  -e HN_NODE_TOKEN=your_token \
+  -e WALLET_PUBKEY=your_wallet \
+  hypernode/node-client:latest
+```
+
+---
+
+## 📚 Resources
+
+- [Main Website](https://hypernodesolana.org)
+- [Documentation](https://docs.hypernode.sol)
+- [Discord Community](https://discord.gg/hypernode)
+- [GitHub Issues](https://github.com/your-org/hypernode-node-client/issues)
+
+---
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Test with real GPU hardware
+4. Commit your changes (`git commit -m 'Add amazing feature'`)
+5. Push to the branch (`git push origin feature/amazing-feature`)
+6. Open a Pull Request
+
+---
+
+## 📄 License
+
+MIT License - see LICENSE file for details
+
+---
+
+## ⚠️ Disclaimer
+
+- Running compute jobs uses electricity - monitor your power costs
+- Ensure proper cooling for your GPU
+- Jobs from untrusted sources run in isolated containers
+- You are responsible for your hardware
+- Earnings depend on network demand and your hardware specs
+
+---
+
+**Start earning HYPER with your idle GPU! 🚀**

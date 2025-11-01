@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  hypernode-worker:
+    build: .
+    container_name: hypernode-worker
+    restart: unless-stopped
+
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+    environment:
+      - HN_NODE_TOKEN=${HN_NODE_TOKEN}
+      - WALLET_PUBKEY=${WALLET_PUBKEY}
+      - BACKEND_URL=${BACKEND_URL:-https://api.hypernode.sol}
+      - HEARTBEAT_INTERVAL=${HEARTBEAT_INTERVAL:-60}
+      - MAX_JOBS_CONCURRENT=${MAX_JOBS_CONCURRENT:-1}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./models:/app/models
+
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
