@@ -461,8 +461,11 @@ The Hypernode network is built on Solana with 5 core smart contracts:
 
 ## 📚 Resources
 
-**GitHub Links**:
+**Official Links**:
 - [GitHub Organization](https://github.com/Hypernode-sol)
+- [Twitter](https://x.com/hypernode_sol)
+
+**Technical Documentation**:
 - [Solana Programs](https://github.com/Hypernode-sol/hypernode-llm-deployer) - Core smart contracts
 - [Worker Source Code](https://github.com/Hypernode-sol/hypernode-llm-deployer/tree/main/worker) - TypeScript worker implementation
 - [Security Audit](https://github.com/Hypernode-sol/hypernode-llm-deployer/blob/main/SECURITY_AUDIT.md)
