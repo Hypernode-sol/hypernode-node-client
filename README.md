@@ -315,16 +315,70 @@ docker logs hypernode-worker > node-logs.txt
 - **5%** → Orchestrator/Agent
 
 ### Reputation System
-- Higher reputation = more jobs
-- Reputation increases with:
-  - Completed jobs
-  - Staked HYPER
-  - Uptime
-  - Fast execution
-- Reputation decreases with:
-  - Failed jobs
-  - Offline time
-  - Slow execution
+
+**On-Chain Reputation Tracking** (Solana-based):
+- All reputation metrics stored on blockchain
+- Transparent and verifiable performance history
+- Cannot be manipulated or reset
+
+**Reputation Score** (0-1000 points):
+- Completion rate (60% weight)
+- Uptime (30% weight)
+- Response time (10% weight)
+
+**Tier System**:
+- Starter (0-200): New nodes
+- Bronze (201-400): Basic tier
+- Silver (401-600): Intermediate tier
+- Gold (601-800): High tier
+- Diamond (801-1000): Elite tier
+
+**Tracked Metrics**:
+- Total jobs completed
+- Failed jobs count
+- Timeout jobs count
+- Average response time
+- Total uptime (hours)
+- Total revenue earned (SOL)
+
+**Priority System**:
+- Higher tiers get priority for job matching
+- Diamond tier: +10 priority boost
+- Gold tier: +5 priority boost
+- Silver tier: +2 priority boost
+- Bronze tier: +1 priority boost
+
+**Implementation**:
+See [ReputationHandler.ts](https://github.com/Hypernode-sol/hypernode-llm-deployer/blob/main/worker/src/handlers/ReputationHandler.ts) for the full implementation.
+
+---
+
+## 🔗 Integration with Solana Programs
+
+The node client integrates directly with Hypernode's Solana smart contracts:
+
+**Program Interactions**:
+- **Markets Program**: List node, accept jobs, submit results
+- **Staking Program**: Verify xHYPER stake requirements
+- **Reputation Program**: Update on-chain performance metrics
+- **Slashing Program**: Subject to fraud detection and penalties
+
+**Worker Architecture** (TypeScript):
+```
+worker/src/
+├── NodeManager.ts          # Main orchestrator
+├── solana/
+│   └── SolanaClient.ts     # Solana program interactions
+├── handlers/
+│   ├── SpecsHandler.ts     # GPU detection
+│   ├── HealthHandler.ts    # Health monitoring
+│   ├── JobHandler.ts       # Job execution
+│   └── ReputationHandler.ts # Reputation tracking
+└── providers/
+    └── DockerProvider.ts   # Container orchestration
+```
+
+**Source Code**: [hypernode-llm-deployer/worker](https://github.com/Hypernode-sol/hypernode-llm-deployer/tree/main/worker)
 
 ---
 
@@ -388,12 +442,37 @@ docker run -d \
 
 ---
 
+## 🏗️ Project Status
+
+**Current Phase**: Devnet Testing
+
+The Hypernode network is built on Solana with 5 core smart contracts:
+- ✅ **Markets Program** - Job/node matching, escrow payments
+- ✅ **Staking Program** - Time-locked HYPER staking (2 weeks to 1 year)
+- ✅ **Rewards Program** - O(1) reflection-based rewards distribution
+- ✅ **Slashing Program** - Fraud detection with 7-day appeal period
+- ✅ **Governance Program** - DAO voting with xHYPER-weighted power
+
+**Security**: 6 critical/high vulnerabilities fixed, 35-40% gas optimized
+
+**Worker Implementation**: TypeScript-based worker client with full Solana integration, reputation tracking, and Docker orchestration.
+
+---
+
 ## 📚 Resources
 
+**Official Links**:
 - [Main Website](https://hypernodesolana.org)
-- [Documentation](https://docs.hypernode.sol)
+- [GitHub Organization](https://github.com/Hypernode-sol)
 - [Discord Community](https://discord.gg/hypernode)
-- [GitHub Issues](https://github.com/your-org/hypernode-node-client/issues)
+- [Twitter](https://twitter.com/HypernodeSol)
+
+**Technical Documentation**:
+- [Solana Programs](https://github.com/Hypernode-sol/hypernode-llm-deployer) - Core smart contracts
+- [Worker Source Code](https://github.com/Hypernode-sol/hypernode-llm-deployer/tree/main/worker) - TypeScript worker implementation
+- [Security Audit](https://github.com/Hypernode-sol/hypernode-llm-deployer/blob/main/SECURITY_AUDIT.md)
+- [Gas Optimization Report](https://github.com/Hypernode-sol/hypernode-llm-deployer/blob/main/GAS_OPTIMIZATION.md)
+- [SDK Documentation](https://github.com/Hypernode-sol/hypernode-llm-deployer/tree/main/sdk)
 
 ---
 
