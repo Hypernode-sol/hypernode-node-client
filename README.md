@@ -461,13 +461,8 @@ The Hypernode network is built on Solana with 5 core smart contracts:
 
 ## 📚 Resources
 
-**Official Links**:
-- [Main Website](https://hypernodesolana.org)
+**GitHub Links**:
 - [GitHub Organization](https://github.com/Hypernode-sol)
-- [Discord Community](https://discord.gg/hypernode)
-- [Twitter](https://twitter.com/HypernodeSol)
-
-**Technical Documentation**:
 - [Solana Programs](https://github.com/Hypernode-sol/hypernode-llm-deployer) - Core smart contracts
 - [Worker Source Code](https://github.com/Hypernode-sol/hypernode-llm-deployer/tree/main/worker) - TypeScript worker implementation
 - [Security Audit](https://github.com/Hypernode-sol/hypernode-llm-deployer/blob/main/SECURITY_AUDIT.md)
@@ -503,4 +498,4 @@ MIT License - see LICENSE file for details
 
 ---
 
-**Start earning HYPER with your idle GPU! 🚀**
+**Start earning HYPER with your idle GPU!**
