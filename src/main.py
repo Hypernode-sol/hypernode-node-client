@@ -35,14 +35,19 @@ class HypernodeWorker:
 
     def validate_config(self) -> bool:
         """Validate required configuration"""
-        if not self.config.node_token:
-            log.error("HN_NODE_TOKEN not set - get it from /app")
+        is_valid, error_msg = self.config.validate()
+
+        if not is_valid:
+            log.error("Configuration validation failed", error=error_msg)
             return False
 
-        if not self.config.wallet_pubkey:
-            log.error("WALLET_PUBKEY not set - provide your Solana wallet")
-            return False
-
+        log.info(
+            "Configuration validated",
+            heartbeat_interval=self.config.heartbeat_interval,
+            request_timeout=self.config.request_timeout,
+            job_poll_interval=self.config.job_poll_interval,
+            max_jobs=self.config.max_jobs_concurrent
+        )
         return True
 
     def register_node(self) -> bool:
@@ -175,7 +180,7 @@ class HypernodeWorker:
                     log.info("Job received", job_id=job.get("jobId"))
                     self.job_executor.execute_job(job)
                 else:
-                    time.sleep(10)  # Wait 10s before checking again
+                    time.sleep(self.config.job_poll_interval)
             except Exception as e:
                 log.error("Job execution error", error=str(e))
                 time.sleep(5)
