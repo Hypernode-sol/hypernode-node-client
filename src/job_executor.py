@@ -2,11 +2,32 @@
 
 import requests
 import structlog
+import time
 from typing import Optional, Dict
 
 from config import Config
 
 log = structlog.get_logger()
+
+
+def retry_with_backoff(func, max_retries=3, base_delay=1.0):
+    """Retry function with exponential backoff strategy"""
+    for attempt in range(max_retries):
+        try:
+            return func()
+        except requests.exceptions.RequestException as e:
+            if attempt == max_retries - 1:
+                raise
+            delay = base_delay * (2 ** attempt)
+            log.warning(
+                "Request failed, retrying",
+                attempt=attempt + 1,
+                max_retries=max_retries,
+                delay_seconds=delay,
+                error=str(e)
+            )
+            time.sleep(delay)
+    return None
 
 
 class JobExecutor:
@@ -18,15 +39,20 @@ class JobExecutor:
 
     def poll_job(self) -> Optional[Dict]:
         """Poll backend for available jobs"""
-        try:
+        def _poll():
             response = requests.get(
                 f"{self.config.backend_url}/api/jobs/available",
                 headers={"Authorization": f"Bearer {self.config.node_token}"},
                 params={"wallet": self.config.wallet_pubkey},
                 timeout=10
             )
+            response.raise_for_status()
+            return response
 
-            if response.status_code == 200:
+        try:
+            response = retry_with_backoff(_poll, max_retries=3, base_delay=1.0)
+
+            if response and response.status_code == 200:
                 data = response.json()
                 job = data.get("job")
                 if job:
@@ -119,8 +145,8 @@ class JobExecutor:
 
     def _report_result(self, job_id: str, result: Dict):
         """Report successful job result"""
-        try:
-            requests.post(
+        def _report():
+            response = requests.post(
                 f"{self.config.backend_url}/api/jobs/{job_id}/result",
                 json={
                     "nodeId": "current_node_id",  # Would get from registration
@@ -131,8 +157,14 @@ class JobExecutor:
                 headers={"Authorization": f"Bearer {self.config.node_token}"},
                 timeout=10
             )
+            response.raise_for_status()
+            return response
+
+        try:
+            retry_with_backoff(_report, max_retries=5, base_delay=2.0)
+            log.info("Result reported successfully", job_id=job_id)
         except Exception as e:
-            log.error("Failed to report result", job_id=job_id, error=str(e))
+            log.error("Failed to report result after retries", job_id=job_id, error=str(e))
 
     def _report_failure(self, job_id: str, error: str):
         """Report job failure"""
