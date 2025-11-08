@@ -321,10 +321,21 @@ docker logs hypernode-worker > node-logs.txt
 - Transparent and verifiable performance history
 - Cannot be manipulated or reset
 
+**Health Check System** (Permissionless Verification):
+- **Anyone can verify node health** - Decentralized quality monitoring
+- **Automatic penalties** - Failed checks reduce reputation by 10 points
+- **Anti-spam protection** - 5-minute minimum interval between checks
+- **Transparent metrics** - All checks recorded on-chain
+  - Total health checks performed
+  - Passed/failed check counts
+  - Health check pass rate (0-100%)
+  - Last check timestamp
+
 **Reputation Score** (0-1000 points):
 - Completion rate (60% weight)
 - Uptime (30% weight)
 - Response time (10% weight)
+- **Health check pass rate affects priority** - Higher pass rate = better job matching
 
 **Tier System**:
 - Starter (0-200): New nodes
