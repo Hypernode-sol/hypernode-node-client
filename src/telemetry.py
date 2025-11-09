@@ -5,6 +5,7 @@ import structlog
 from typing import Dict
 
 from config import Config
+from gpu_detector import GPUDetector
 
 log = structlog.get_logger()
 
@@ -14,11 +15,21 @@ class TelemetryReporter:
 
     def __init__(self, config: Config):
         self.config = config
+        self.gpu_detector = GPUDetector()
 
     def report(self):
         """Collect and report telemetry"""
         try:
             metrics = self._collect_metrics()
+
+            # Check GPU health
+            health = self.gpu_detector.monitor_health()
+            metrics["gpu_health"] = health
+
+            # Log warnings if unhealthy
+            if not health["healthy"]:
+                log.warning("GPU health issues detected", issues=health["issues"])
+
             log.debug("Telemetry collected", **metrics)
 
             # In production, send to backend
@@ -35,24 +46,9 @@ class TelemetryReporter:
             "disk_percent": psutil.disk_usage('/').percent,
         }
 
-        # Try to get GPU metrics
-        try:
-            import pynvml
-            pynvml.nvmlInit()
-            handle = pynvml.nvmlDeviceGetHandleByIndex(0)
-
-            gpu_util = pynvml.nvmlDeviceGetUtilizationRates(handle)
-            metrics["gpu_percent"] = gpu_util.gpu
-            metrics["gpu_memory_percent"] = gpu_util.memory
-
-            temp = pynvml.nvmlDeviceGetTemperature(handle, pynvml.NVML_TEMPERATURE_GPU)
-            metrics["gpu_temp_c"] = temp
-
-            power = pynvml.nvmlDeviceGetPowerUsage(handle) // 1000  # mW to W
-            metrics["gpu_power_w"] = power
-
-            pynvml.nvmlShutdown()
-        except:
-            pass
+        # Get detailed GPU stats using detector
+        gpu_stats = self.gpu_detector.get_gpu_stats()
+        if gpu_stats:
+            metrics.update(gpu_stats)
 
         return metrics
